@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#080b18">
   <title>PAC-MAN · Arcade</title>
   <link rel="stylesheet" href="style.css">
+  <script src="audio.js" defer></script>
   <script src="game.js" defer></script>
 </head>
 <body>
@@ -22,7 +23,7 @@
         <canvas id="game" width="504" height="552" aria-label="Laberinto de Pac-Man. Usa las flechas para moverte, P para pausar y R para reiniciar."></canvas>
         <div class="overlay" id="overlay"><div class="overlay-card"><span class="mini-pac"></span><p class="eyebrow" id="overlay-label">EL CLÁSICO ESTÁ DE VUELTA</p><h2 id="overlay-title">¿Una partida?</h2><p id="overlay-text">Come los puntos y esquiva a los fantasmas.<br>Las bolas de energía cambian las reglas.</p><button id="play" class="primary">JUGAR AHORA <span>→</span></button><small id="overlay-hint">O pulsa Enter para empezar</small></div></div>
       </div>
-      <div class="machine-footer"><span id="status" role="status" aria-live="polite">LISTO PARA JUGAR</span><div><button id="pause" class="icon-button" aria-label="Pausar partida" disabled>Ⅱ</button><button id="restart" class="icon-button" aria-label="Reiniciar partida">↻</button><button id="sound" class="icon-button" aria-label="Activar sonido" aria-pressed="false">♪</button></div></div>
+      <div class="machine-footer"><span id="status" role="status" aria-live="polite">LISTO PARA JUGAR</span><div><button id="pause" class="icon-button" aria-label="Pausar partida" disabled>Ⅱ</button><button id="restart" class="icon-button" aria-label="Reiniciar partida">↻</button><button id="sound" class="icon-button" aria-label="Desactivar sonido" aria-pressed="true" title="Sonido activado · pulsa para silenciar">♪</button></div></div>
     </section>
     <div class="touch-controls" aria-label="Controles táctiles"><button data-dir="up" aria-label="Arriba">↑</button><div><button data-dir="left" aria-label="Izquierda">←</button><button data-dir="down" aria-label="Abajo">↓</button><button data-dir="right" aria-label="Derecha">→</button></div></div>
     <section class="guide" aria-label="Cómo jugar"><div><span class="guide-icon">⌨</span><p><strong>Muévete a tu ritmo</strong><span>Flechas para mover · P para pausar · R para reiniciar</span></p></div><div><span class="power-icon"></span><p><strong>Dale la vuelta a la partida</strong><span>Come una bola de energía y caza a los fantasmas.</span></p></div></section>

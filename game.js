@@ -30,7 +30,8 @@
   const tile = 24, directions = {left:{x:-1,y:0,a:Math.PI},right:{x:1,y:0,a:0},up:{x:0,y:-1,a:-Math.PI/2},down:{x:0,y:1,a:Math.PI/2}};
   const keys = {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
   const colors = ['#ff617f','#67e5ee','#ffb4e1','#ffb65c'];
-  let board, player, ghosts, score = 0, lives = 3, remaining, state = 'ready', power = 0, chain = 0, elapsed = 0, respawn = 0, best = 0, sound = false, audio;
+  let board, player, ghosts, score = 0, lives = 3, remaining, state = 'ready', power = 0, chain = 0, elapsed = 0, respawn = 0, best = 0;
+  const sfx = new window.ArcadeAudio();
   try { best = Number(localStorage.getItem('pixel-pacman-best')) || 0; } catch (_) { /* Storage can be disabled for local files. */ }
   function walk(x,y) { return board[y]?.[x] !== undefined && board[y][x] !== '#'; }
   function entity(x,y,dir) { return {x,y,fromX:x,fromY:y,toX:x,toY:y,progress:1,dir}; }
@@ -49,6 +50,8 @@
     $('lives').setAttribute('aria-label',`${lives} vidas`);
   }
   function newGame() {
+    sfx.stopAll();
+    sfx.unlock().then(ready => { if (ready && state==='playing' && respawn>0) sfx.play('start'); });
     board = layout.map(row=>row.split('')); score=0;lives=3;elapsed=0;
     remaining=board.flat().filter(c=>c==='.'||c==='o').length;
     resetActors(); state='playing'; $('overlay').hidden=true; updateHud(); syncControls();
@@ -66,20 +69,24 @@
     $('overlay').hidden=false;syncControls();
   }
   function pause() {
-    if(state==='playing'){state='paused';showOverlay('TÓMATE UN RESPIRO','Pausa', 'Los fantasmas también necesitan descansar.','CONTINUAR →');}
-    else if(state==='paused'){state='playing';$('overlay').hidden=true;syncControls();}
+    if(state==='playing'){sfx.stopAll();state='paused';showOverlay('TÓMATE UN RESPIRO','Pausa', 'Los fantasmas también necesitan descansar.','CONTINUAR →');}
+    else if(state==='paused'){sfx.unlock();state='playing';$('overlay').hidden=true;syncControls();}
   }
-  function tone(freq,duration=.055) {
-    if(!sound)return;
-    try{audio ||= new (window.AudioContext||window.webkitAudioContext)(); audio.resume();const osc=audio.createOscillator(),gain=audio.createGain();osc.type='triangle';osc.frequency.value=freq;gain.gain.setValueAtTime(.035,audio.currentTime);gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);osc.connect(gain);gain.connect(audio.destination);osc.start();osc.stop(audio.currentTime+duration);}catch(_){}
+  function syncSoundButton() {
+    const button = $('sound');
+    button.disabled = !sfx.supported;
+    button.setAttribute('aria-pressed', String(sfx.enabled && sfx.supported));
+    button.setAttribute('aria-label', !sfx.supported ? 'Sonido no disponible' : sfx.enabled ? 'Desactivar sonido' : 'Activar sonido');
+    button.textContent = sfx.enabled ? '♪' : '♪×';
+    button.title = !sfx.supported ? 'Este navegador no admite audio' : sfx.enabled ? 'Sonido activado · pulsa para silenciar' : 'Sonido desactivado · pulsa para activar';
   }
   function eat() {
     const c=board[player.y][player.x];
     if(c!=='.'&&c!=='o')return;
     board[player.y][player.x]=' ';remaining--;score+=c==='o'?50:10;
-    if(c==='o'){power=7;chain=0;tone(220,.2);syncControls();}else tone(440+(remaining%2)*110);
+    if(c==='o'){power=7;chain=0;sfx.play('power');syncControls();}else sfx.play('dot');
     updateHud();
-    if(remaining===0){state='won';showOverlay('PERFECTO. NI UNA MIGA.','¡Lo conseguiste!',`Has limpiado el laberinto. Puntuación: ${score}.`,'VOLVER A JUGAR →');}
+    if(remaining===0){sfx.stopAll();sfx.play('win');state='won';showOverlay('PERFECTO. NI UNA MIGA.','¡Lo conseguiste!',`Has limpiado el laberinto. Puntuación: ${score}.`,'VOLVER A JUGAR →');}
   }
   function ghostDirection(g) {
     const options=Object.keys(directions).filter(d=>walk(g.x+directions[d].x,g.y+directions[d].y));
@@ -113,8 +120,8 @@
     for(const g of ghosts){if(g.release>0){g.release-=dt;continue;}move(g,dt,power>0?3.2:4.5+g.id*.12,ghostDirection);}
     const p=position(player);
     for(const g of ghosts){const q=position(g);if(g.release>0||Math.hypot(p.x-q.x,p.y-q.y)>.68)continue;
-      if(power>0){score+=200*2**Math.min(chain++,3);const fresh=entity(10,9,'left');Object.assign(g,fresh,{release:2});tone(740,.15);updateHud();}
-      else{lives--;tone(110,.35);updateHud();if(lives===0){state='lost';showOverlay('LOS FANTASMAS GANAN ESTA VEZ','Una más, ¿no?',`Has conseguido ${score} puntos. Tu próxima marca te espera.`,'VOLVER A JUGAR →');}else resetActors();break;}
+      if(power>0){score+=200*2**Math.min(chain++,3);const fresh=entity(10,9,'left');Object.assign(g,fresh,{release:2});sfx.play('ghost');updateHud();}
+      else{lives--;sfx.stopAll();sfx.play('death');updateHud();if(lives===0){state='lost';showOverlay('LOS FANTASMAS GANAN ESTA VEZ','Una más, ¿no?',`Has conseguido ${score} puntos. Tu próxima marca te espera.`,'VOLVER A JUGAR →');}else resetActors();break;}
     }
   }
   function draw() {
@@ -154,7 +161,11 @@
   }
   $('play').addEventListener('click',()=>state==='paused'?pause():newGame());
   $('pause').addEventListener('click',pause);$('restart').addEventListener('click',newGame);
-  $('sound').addEventListener('click',()=>{sound=!sound;$('sound').setAttribute('aria-pressed',String(sound));$('sound').setAttribute('aria-label',sound?'Desactivar sonido':'Activar sonido');tone(660,.1);});
+  $('sound').addEventListener('click', async () => {
+    sfx.setEnabled(!sfx.enabled);
+    syncSoundButton();
+    if (sfx.enabled && await sfx.unlock()) sfx.play('enabled');
+  });
   document.addEventListener('keydown',event=>{
     if(event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,textarea,select'))return;
     if(keys[event.key]){event.preventDefault();if(state==='playing')player.next=keys[event.key];}
@@ -163,9 +174,9 @@
     else if(event.key==='Enter' && event.target.tagName!=='BUTTON' && event.target.tagName!=='A'){event.preventDefault();if(!event.repeat){if(state==='paused')pause();else if(state!=='playing')newGame();}}
   });
   document.querySelectorAll('[data-dir]').forEach(button=>button.addEventListener('pointerdown',event=>{event.preventDefault();if(state==='playing')player.next=button.dataset.dir;}));
-  document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='playing')pause();});
-  board=layout.map(row=>row.split(''));resetActors();updateHud();draw();
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){sfx.stopAll();if(state==='playing')pause();}});
+  board=layout.map(row=>row.split(''));resetActors();updateHud();syncSoundButton();draw();
   let last=performance.now();
-  function frame(now){const dt=Math.min((now-last)/1000,.04);last=now;if(state==='playing')update(dt);draw();requestAnimationFrame(frame);}
+  function frame(now){const dt=Math.min((now-last)/1000,.04);last=now;if(state==='playing')update(dt);sfx.update(dt,state==='playing'&&respawn<=0,power>0);draw();requestAnimationFrame(frame);}
   requestAnimationFrame(frame);
 })();

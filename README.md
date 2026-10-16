@@ -42,7 +42,7 @@ Pulsa **JUGAR AHORA** o **Enter**. Come los 186 puntos del laberinto y evita a l
 | P o botón Ⅱ | Pausar / continuar |
 | R o botón ↻ | Reiniciar desde cero |
 | Enter | Empezar, continuar desde la pausa o volver a jugar |
-| Botón ♪ | Activar / desactivar sonido (silenciado al inicio) |
+| Botón ♪ | Activar / desactivar sonido (activado al empezar; recuerda tu elección) |
 | Botones de dirección en pantalla | Mover en dispositivos táctiles |
 
 - **Punto pequeño:** 10 puntos.
@@ -61,14 +61,21 @@ Comprobaciones manuales para verificar una partida:
 4. Toca un fantasma sin energía. Pierdes una vida y vuelves al inicio, conservando la puntuación. Tras tres colisiones aparece la pantalla de derrota.
 5. Come todos los puntos para mostrar la victoria. Usa **VOLVER A JUGAR** para comenzar otra partida.
 6. Pulsa **R** para restablecer puntos, vidas y laberinto. Comprueba que la mejor marca se conserva al recargar (si el navegador permite almacenamiento).
-7. En móvil, prueba los botones táctiles. Activa el botón **♪** para comprobar el sonido. Cambia de pestaña para verificar la pausa automática.
+7. En móvil, prueba los botones táctiles. Comprueba que suena la melodía al empezar y el «waka-waka» al comer puntos. Usa **♪** para silenciar y volver a activar; recarga para comprobar que recuerda tu elección. Verifica que la pausa y el cambio de pestaña silencian la partida.
 
 Durante el desarrollo se verificaron en Chromium: arranque y puntuación con controles reales, pausa y reanudación, reinicio, activación de sonido, movimiento de fantasmas, bloqueo de paredes, bolas de energía, colisiones, vidas, victoria y derrota. También se comprobaron el diseño móvil, los controles táctiles, la accesibilidad de todos los puntos del laberinto. Los estados de colisión y fin de partida se verificaron mediante escenarios controlados en el navegador.
+
+## Sonidos arcade
+
+El sonido se activa al pulsar **JUGAR AHORA** o **Enter**, mediante Web Audio. Incluye una melodía de inicio, «waka-waka» alternado al comer puntos, sirena de persecución, pulsos durante la energía, captura de fantasmas, pérdida de vida y victoria. Son recreaciones sintetizadas de estilo clásico, generadas localmente; no utiliza grabaciones originales ni necesita descargas. El botón **♪** silencia inmediatamente y guarda la preferencia cuando el almacenamiento está disponible.
+
+Si no se oye, activa **♪**, comprueba el volumen del dispositivo y que la pestaña no esté silenciada. En móviles, inicia la partida con un toque. El navegador necesita esa interacción para permitir el audio.
 
 ## Archivos
 
 - `index.html`: estructura e interfaz accesible.
 - `style.css`: diseño arcade y adaptación a pantallas pequeñas.
+- `audio.js`: sintetizador y efectos de sonido arcade, sin archivos externos.
 - `game.js`: dibujo en Canvas, movimiento, búsqueda de caminos para los fantasmas, reglas, sonido y almacenamiento de la marca.
 
 Para editar el juego, modifica estos archivos y recarga el navegador. No hace falta instalar paquetes.
